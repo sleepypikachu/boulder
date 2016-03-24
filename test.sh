@@ -10,7 +10,9 @@ fi
 # Order doesn't matter. Note: godep-restore is specifically left out of the
 # defaults, because we don't want to run it locally (would be too disruptive to
 # GOPATH).
-RUN=${RUN:-vet lint fmt migrations unit integration}
+#
+# TODO(riking): turn lint back on
+RUN=${RUN:-vet fmt migrations unit integration}
 
 # The list of segments to hard fail on, as opposed to continuing to the end of
 # the unit tests before failing.  By defuault, we only hard-fail for gofmt,
