@@ -84,7 +84,7 @@ func main() {
 
 		// Set up paths
 		wfe.BaseURL = c.Common.BaseURL
-		h, err := wfe.Handler()
+		h, err := wfe.Handler(true)
 		cmd.FailOnError(err, "Problem setting up HTTP handlers")
 
 		httpMonitor := metrics.NewHTTPMonitor(stats, h, "WFE")

@@ -191,6 +191,8 @@ type Config struct {
 	AllowedSigningAlgos *AllowedSigningAlgos
 
 	SubscriberAgreementURL string
+	Website                string
+	CAAIdentities          []string
 }
 
 // AllowedSigningAlgos defines which algorithms be used for keys that we will

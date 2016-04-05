@@ -72,6 +72,15 @@ type WebFrontEndImpl struct {
 	// URL to the current subscriber agreement (should contain some version identifier)
 	SubscriberAgreementURL string
 
+	// An HTTP or HTTPS URL locating a website providing more information about the ACME server. (optional)
+	Website string
+
+	// Each string MUST be a lowercase hostname which the ACME server recognises as
+	// referring to itself for the purposes of CAA record validation as defined in
+	// [RFC6844]. This allows clients to determine the correct issuer domain name
+	// to use when configuring CAA record. (optional)
+	CAAIdentities []string
+
 	// Register of anti-replay nonces
 	nonceService *core.NonceService
 
@@ -178,7 +187,7 @@ func (wfe *WebFrontEndImpl) HandleFunc(mux *http.ServeMux, pattern string, h wfe
 
 // Handler returns an http.Handler that uses various functions for
 // various ACME-specified paths.
-func (wfe *WebFrontEndImpl) Handler() (http.Handler, error) {
+func (wfe *WebFrontEndImpl) Handler(includeMeta bool) (http.Handler, error) {
 	wfe.NewReg = wfe.BaseURL + NewRegPath
 	wfe.RegBase = wfe.BaseURL + RegPath
 	wfe.NewAuthz = wfe.BaseURL + NewAuthzPath
@@ -193,14 +202,27 @@ func (wfe *WebFrontEndImpl) Handler() (http.Handler, error) {
 		"new-authz":   wfe.NewAuthz,
 		"new-cert":    wfe.NewCert,
 		"revoke-cert": wfe.BaseURL + RevokeCertPath,
-		"meta": map[string]string{
-			"terms-of-service": wfe.SubscriberAgreementURL,
-		},
 	}
+
+	if includeMeta {
+		meta := map[string]interface{}{}
+		meta["terms-of-service"] = wfe.SubscriberAgreementURL
+
+		if wfe.Website != "" {
+			meta["website"] = wfe.Website
+		}
+		if wfe.CAAIdentities != nil {
+			meta["caa-identities"] = wfe.CAAIdentities
+		}
+
+		directory["meta"] = meta
+	}
+
 	directoryJSON, err := json.Marshal(directory)
 	if err != nil {
 		return nil, err
 	}
+
 	wfe.DirectoryJSON = directoryJSON
 
 	m := http.NewServeMux()
